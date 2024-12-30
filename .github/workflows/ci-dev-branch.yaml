@@ -1,0 +1,14 @@
+name: Dev Branch Pipeline
+on:
+  workflow_call:
+run-name: ${{ github.sha }} | ${{ github.event.head_commit.message }}
+jobs:
+  tests:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo npm test
+
+#workflow_call makes it reusable workflow, when another workflow calls this workflow it triggers the workflow
+#note that no inputs defined for workflow_call

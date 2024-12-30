@@ -1,0 +1,49 @@
+name: Main Branch Pipeline
+on:
+  workflow_call:
+    inputs:
+      componentName:
+        required: true
+        type: string
+    secrets:
+      NR_API_KEY:
+        required: true
+
+run-name: ${{ github.sha }} | ${{ github.event.head_commit.message }}
+
+jobs:
+  UNIT-TESTS:
+    runs-on: self-hosted
+    #the type of runner the job will run on. self-hosted means you deploy a server that will run the code
+    steps:
+      - uses: actions/checkout@v4
+        #actions/checkout@v4 checkout your  repository under $github_workspace so your workflow can access it
+      - run: |
+          echo npm test
+
+  BUILD:
+    runs-on: self-hosted
+    needs: UNIT-TESTS
+    #BUILD job depends on UNIT-TESTS to be completed, then only runs
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 897722697588.dkr.ecr.us-east-1.amazonaws.com
+          if [ ${{ inputs.componentName }} == "shipping" ]; then
+            curl -v -L -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip
+            unzip newrelic-java.zip
+          fi
+          e=$(aws ecr describe-images --repository-name roboshop-${{ inputs.componentName }} | grep ${{ github.sha }} | wc -l)
+          if [ $e -eq 0 ]; then
+            docker build --build-arg NR_API_KEY=${{ secrets.NR_API_KEY }} -t 897722697588.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }} .
+            docker push 897722697588.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }}
+          fi
+# aws ecr get-login-password - retrieves the password to login to Amazon ecr registry that your IAM principle has access to login
+# then you can pipe the output of the get-login-password command to the doker login command as shown below, make sure you specify the same region
+#  docker login \
+#    --username AWS \
+#    --password-stdin <aws_account_id>.dkr.ecr.<region>.amazonaws.com
+# aws ecr describe-images --> returns metadata about the images in a repository
+# docker build --build-arg (allows you to pass variables to your dockerfile, -t allows you to tag the image, i.e giving it a name and version
+# docker push allows you to push the image in the registry
+#
