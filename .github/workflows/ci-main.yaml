@@ -28,15 +28,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 897722697588.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 585768147521.dkr.ecr.us-east-1.amazonaws.com
           if [ ${{ inputs.componentName }} == "shipping" ]; then
             curl -v -L -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip
             unzip newrelic-java.zip
           fi
           e=$(aws ecr describe-images --repository-name roboshop-${{ inputs.componentName }} | grep ${{ github.sha }} | wc -l)
           if [ $e -eq 0 ]; then
-            docker build --build-arg NR_API_KEY=${{ secrets.NR_API_KEY }} -t 897722697588.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }} .
-            docker push 897722697588.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }}
+            docker build --build-arg NR_API_KEY=${{ secrets.NR_API_KEY }} -t 585768147521.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }} .
+            docker push 585768147521.dkr.ecr.us-east-1.amazonaws.com/roboshop-${{ inputs.componentName }}:${{ github.sha }}
           fi
 # aws ecr get-login-password - retrieves the password to login to Amazon ecr registry that your IAM principle has access to login
 # then you can pipe the output of the get-login-password command to the doker login command as shown below, make sure you specify the same region
