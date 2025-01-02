@@ -7,7 +7,7 @@ on:
         type: string
     secrets:
       NR_API_KEY:
-        required: true
+        required: false
 
 run-name: ${{ github.sha }} | ${{ github.event.head_commit.message }}
 
